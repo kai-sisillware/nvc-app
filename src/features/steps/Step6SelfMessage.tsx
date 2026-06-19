@@ -37,7 +37,7 @@ export function Step6SelfMessage() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, []);
 
   const handleOpenRequest = () => {
     dispatch({ type: "OPEN_REQUEST" });

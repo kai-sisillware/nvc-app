@@ -33,7 +33,7 @@ export function Step3Needs() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, []);
 
   return (
     <ScreenContainer>
