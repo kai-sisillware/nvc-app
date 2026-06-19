@@ -53,8 +53,38 @@ export async function suggestEmotions(observationText: string): Promise<EmotionO
 
   // よく出やすい代表的な感情を優先的に並べる
   const priorityIds = uncomfortableHint
-    ? ["frustrated", "hurt", "anxious", "disappointed", "helpless", "tired", "lonely", "irritated"]
-    : ["calm", "relieved", "glad", "grateful", "secure"];
+    ? [
+        "frustrated",
+        "hurt",
+        "anxious",
+        "disappointed",
+        "helpless",
+        "tired",
+        "lonely",
+        "irritated",
+        "sad",
+        "confused",
+        "tense",
+        "overwhelmed",
+        "guilty",
+        "discouraged",
+        "embarrassed",
+        "heavy",
+      ]
+    : [
+        "calm",
+        "relieved",
+        "glad",
+        "grateful",
+        "secure",
+        "satisfied",
+        "warm",
+        "content",
+        "touched",
+        "hopeful",
+        "connected",
+        "peaceful",
+      ];
 
   const prioritized = priorityIds
     .map((id) => pool.find((e) => e.id === id))
@@ -62,7 +92,7 @@ export async function suggestEmotions(observationText: string): Promise<EmotionO
 
   const rest = pool.filter((e) => !priorityIds.includes(e.id));
 
-  return [...prioritized, ...rest].slice(0, 8);
+  return [...prioritized, ...rest].slice(0, 18);
 }
 
 /**
@@ -100,7 +130,7 @@ export async function suggestNeeds(ctx: AIContext): Promise<NeedOption[]> {
 
   weighted.sort((a, b) => b.score - a.score);
 
-  const top = weighted.slice(0, 6).map(({ need, score }) => ({
+  const top = weighted.slice(0, 14).map(({ need, score }) => ({
     ...need,
     relevance: Math.max(1, Math.min(5, score)) as NeedOption["relevance"],
   }));

@@ -42,7 +42,7 @@ export function Step7Request() {
   return (
     <ScreenContainer>
       <StepHeader
-        eyebrow="Step 7 ・ もし伝えるとしたら（任意）"
+        eyebrow="Step 7 ・ もし伝えるとしたら"
         title="もし伝えるとしたら"
         description="これは“正解の言い方”ではありません。あなたが話しやすいように、自由に書き換えて使ってください。"
       />

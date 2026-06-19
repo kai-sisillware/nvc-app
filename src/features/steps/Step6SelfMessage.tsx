@@ -4,7 +4,7 @@ import { aiService } from "../../services";
 import { findEmotionById } from "../../data/emotions";
 import { findNeedById } from "../../data/needs";
 import { ScreenContainer, StepHeader } from "../../components/layout";
-import { Card, ProgressBar, ThinkingIndicator } from "../../components/ui";
+import { Button, Card, ProgressBar, ThinkingIndicator } from "../../components/ui";
 
 export function Step6SelfMessage() {
   const { state, dispatch } = useJourney();
@@ -62,21 +62,17 @@ export function Step6SelfMessage() {
       </Card>
 
       {status === "done" && (
-        <div className="mt-10 flex flex-col items-center gap-6">
+        <div className="mt-10 flex flex-col items-center gap-5">
+          <Button variant="secondary" onClick={handleOpenRequest}>
+            相手へのリクエストを考えてみる
+          </Button>
+
           <button
             type="button"
             onClick={handleRestart}
             className="text-[13px] text-ink-faint hover:text-ink-soft transition-colors"
           >
             はじめから記録する
-          </button>
-
-          <button
-            type="button"
-            onClick={handleOpenRequest}
-            className="text-[13px] text-ink-faint hover:text-moss-600 transition-colors underline-offset-4 hover:underline"
-          >
-            相手へのリクエストを考えてみる
           </button>
         </div>
       )}
