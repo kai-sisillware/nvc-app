@@ -10,6 +10,7 @@ export const createInitialState = (): JourneyState => ({
   },
   emotion: {
     suggestions: [],
+    matchedTone: null,
     selectedIds: [],
     customEmotions: [],
     status: "idle",
@@ -49,7 +50,7 @@ export type JourneyAction =
   | { type: "SET_OBSERVATION_SUGGESTION"; value: string }
   | { type: "SET_OBSERVATION_FINAL"; value: string }
   | { type: "SET_EMOTION_STATUS"; status: JourneyState["emotion"]["status"] }
-  | { type: "SET_EMOTION_SUGGESTIONS"; value: JourneyState["emotion"]["suggestions"] }
+  | { type: "SET_EMOTION_SUGGESTIONS"; value: JourneyState["emotion"]["suggestions"]; matchedTone: JourneyState["emotion"]["matchedTone"] }
   | { type: "TOGGLE_EMOTION"; id: string }
   | { type: "ADD_CUSTOM_EMOTION"; label: string }
   | { type: "SET_NEED_STATUS"; status: JourneyState["need"]["status"] }
@@ -94,7 +95,10 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
     case "SET_EMOTION_STATUS":
       return { ...state, emotion: { ...state.emotion, status: action.status } };
     case "SET_EMOTION_SUGGESTIONS":
-      return { ...state, emotion: { ...state.emotion, suggestions: action.value } };
+      return {
+        ...state,
+        emotion: { ...state.emotion, suggestions: action.value, matchedTone: action.matchedTone },
+      };
     case "TOGGLE_EMOTION": {
       const exists = state.emotion.selectedIds.includes(action.id);
       return {

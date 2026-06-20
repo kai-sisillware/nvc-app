@@ -57,7 +57,22 @@ src/
 
 ---
 
-## Dify API への接続方法（将来対応）
+## Dify API への接続状況
+
+**Step4（まとめ）・Step7（リクエスト案）は実際のDifyワークフローに接続済みです。** それ以外のStep（1〜3, 5, 6）は引き続きmockです。
+
+- フロントエンド → `/.netlify/functions/dify-summary` または `/.netlify/functions/dify-requests`（Netlify Function）→ Dify という経路で呼び出しています。
+- Dify APIキーはブラウザに一切渡らず、Netlify側の環境変数にのみ保存されています。
+- 必要な環境変数（Netlifyのサイト設定 → Environment variables）:
+  - `DIFY_SUMMARY_API_KEY`: Step4ワークフローのAPIキー
+  - `DIFY_REQUESTS_API_KEY`: Step7ワークフローのAPIキー
+  - `DIFY_API_BASE`（任意）: 省略時は `https://api.dify.ai/v1`
+
+残りのStepを接続する場合は、`netlify/functions/` に同様の中継Functionを追加し、`src/services/difyAiService.ts` の該当メソッドをmockから本実装に差し替えてください。
+
+---
+
+## Dify API への接続方法（将来対応・全体の流れ）
 
 1. `src/services/difyAiService.ts` を新規作成し、`AIService` インターフェースを実装する。
    各メソッドが対応するDifyワークフローは `AIService.ts` のコメントに記載しています。

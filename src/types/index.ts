@@ -36,10 +36,18 @@ export interface EmotionOption {
 
 export interface EmotionState {
   suggestions: EmotionOption[];
+  /** Step1の文章から推定された「満たされている／いない」の傾向。判定できた方を初期表示で優先する */
+  matchedTone: EmotionOption["tone"] | null;
   selectedIds: string[];
   /** ユーザーが「その他」から自由入力した感情 */
   customEmotions: string[];
   status: AsyncStatus;
+}
+
+/** suggestEmotions の戻り値。判定したtoneと、それに基づいて並べた候補一覧をセットで返す */
+export interface EmotionSuggestionResult {
+  suggestions: EmotionOption[];
+  matchedTone: EmotionOption["tone"];
 }
 
 /* ----------------------------- Step3: ニーズ ----------------------------- */

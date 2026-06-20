@@ -1,14 +1,11 @@
-import { mockAiService } from "./mockAiService";
+import { difyAiService } from "./difyAiService";
 import type { AIService } from "./AIService";
 
 /**
- * 現在は mockAiService を使用。
- * Dify接続時は difyAiService.ts を作成し、ここを差し替えるだけでよい。
- *
- * 例:
- *   import { difyAiService } from "./difyAiService";
- *   export const aiService: AIService = difyAiService;
+ * Step4（まとめ）はDifyの実際のワークフローに接続済み。
+ * 残りのStepは引き続きmockのまま（difyAiService.ts内でmockに委譲している）。
+ * 各Stepの接続が完了するたびに difyAiService.ts 側を1つずつ実装していく。
  */
-export const aiService: AIService = mockAiService;
+export const aiService: AIService = difyAiService;
 
 export type { AIService } from "./AIService";

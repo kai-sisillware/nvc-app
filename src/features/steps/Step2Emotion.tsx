@@ -6,9 +6,10 @@ import { Button, Card, ProgressBar, SelectableChip, ThinkingIndicator } from "..
 
 export function Step2Emotion() {
   const { state, dispatch } = useJourney();
-  const { suggestions, selectedIds, status } = state.emotion;
+  const { suggestions, matchedTone, selectedIds, status } = state.emotion;
   const [customDraft, setCustomDraft] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [showOtherTone, setShowOtherTone] = useState(false);
 
   useEffect(() => {
     if (status !== "idle") return;
@@ -18,7 +19,11 @@ export function Step2Emotion() {
       dispatch({ type: "SET_EMOTION_STATUS", status: "loading" });
       const result = await aiService.suggestEmotions(state.observation.finalText);
       if (cancelled) return;
-      dispatch({ type: "SET_EMOTION_SUGGESTIONS", value: result });
+      dispatch({
+        type: "SET_EMOTION_SUGGESTIONS",
+        value: result.suggestions,
+        matchedTone: result.matchedTone,
+      });
       dispatch({ type: "SET_EMOTION_STATUS", status: "done" });
     })();
 
@@ -26,7 +31,7 @@ export function Step2Emotion() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [status]);
 
   const handleAddCustom = () => {
     if (!customDraft.trim()) return;
@@ -34,6 +39,13 @@ export function Step2Emotion() {
     setCustomDraft("");
     setShowCustomInput(false);
   };
+
+  // 既定では「観察文から推定した傾向」に合う感情だけを表示し、
+  // 反対側の傾向はトグルを押すまで隠しておく（消すわけではない）
+  const primaryEmotions = suggestions.filter(
+    (e) => !matchedTone || e.tone === matchedTone || e.id.startsWith("custom-")
+  );
+  const otherEmotions = suggestions.filter((e) => matchedTone && e.tone !== matchedTone);
 
   return (
     <ScreenContainer>
@@ -54,43 +66,73 @@ export function Step2Emotion() {
         {status === "loading" && <ThinkingIndicator label="気持ちの候補をさがしています" />}
 
         {status === "done" && (
-          <div className="flex flex-wrap gap-2.5 animate-fade-in">
-            {suggestions.map((emotion) => (
-              <SelectableChip
-                key={emotion.id}
-                label={emotion.label}
-                selected={selectedIds.includes(emotion.id)}
-                onToggle={() => dispatch({ type: "TOGGLE_EMOTION", id: emotion.id })}
-              />
-            ))}
-
-            {showCustomInput ? (
-              <div className="flex items-center gap-2">
-                <input
-                  autoFocus
-                  value={customDraft}
-                  onChange={(e) => setCustomDraft(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleAddCustom()}
-                  placeholder="ことばを入力"
-                  className="rounded-full border border-line bg-paper-soft px-4 py-2.5 text-[14px]
-                    focus:border-moss-300 focus:outline-none focus:ring-2 focus:ring-moss-100 w-32"
+          <div className="space-y-5 animate-fade-in">
+            <div className="flex flex-wrap gap-2.5">
+              {primaryEmotions.map((emotion) => (
+                <SelectableChip
+                  key={emotion.id}
+                  label={emotion.label}
+                  selected={selectedIds.includes(emotion.id)}
+                  onToggle={() => dispatch({ type: "TOGGLE_EMOTION", id: emotion.id })}
                 />
+              ))}
+
+              {showCustomInput ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    autoFocus
+                    value={customDraft}
+                    onChange={(e) => setCustomDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddCustom()}
+                    placeholder="ことばを入力"
+                    className="rounded-full border border-line bg-paper-soft px-4 py-2.5 text-[14px]
+                      focus:border-moss-300 focus:outline-none focus:ring-2 focus:ring-moss-100 w-32"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustom}
+                    className="text-[13px] text-moss-600 hover:underline"
+                  >
+                    追加
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  onClick={handleAddCustom}
-                  className="text-[13px] text-moss-600 hover:underline"
+                  onClick={() => setShowCustomInput(true)}
+                  className="rounded-full border border-dashed border-line px-4 py-2.5 text-[14px] text-ink-faint hover:text-ink-soft hover:border-ink-faint transition-colors"
                 >
-                  追加
+                  ＋ その他
                 </button>
+              )}
+            </div>
+
+            {otherEmotions.length > 0 && (
+              <div>
+                {!showOtherTone ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowOtherTone(true)}
+                    className="text-[13px] text-ink-faint hover:text-moss-600 transition-colors underline-offset-4 hover:underline"
+                  >
+                    しっくりこなければ、ほかの気持ちも見てみる
+                  </button>
+                ) : (
+                  <div className="space-y-2.5 pt-1 border-t border-line">
+                    <p className="text-[12.5px] text-ink-faint pt-3">こちらの気持ちかもしれません</p>
+                    <div className="flex flex-wrap gap-2.5">
+                      {otherEmotions.map((emotion) => (
+                        <SelectableChip
+                          key={emotion.id}
+                          label={emotion.label}
+                          selected={selectedIds.includes(emotion.id)}
+                          onToggle={() => dispatch({ type: "TOGGLE_EMOTION", id: emotion.id })}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowCustomInput(true)}
-                className="rounded-full border border-dashed border-line px-4 py-2.5 text-[14px] text-ink-faint hover:text-ink-soft hover:border-ink-faint transition-colors"
-              >
-                ＋ その他
-              </button>
             )}
           </div>
         )}

@@ -1,4 +1,10 @@
-import type { AIContext, EmotionOption, NeedOption, RequestOption } from "../types";
+import type {
+  AIContext,
+  EmotionOption,
+  EmotionSuggestionResult,
+  NeedOption,
+  RequestOption,
+} from "../types";
 import { EMOTION_LIBRARY } from "../data/emotions";
 import { NEED_LIBRARY } from "../data/needs";
 import type { AIService } from "./AIService";
@@ -37,62 +43,68 @@ export async function rewriteObservation(rawInput: string): Promise<string> {
 /**
  * Step2: 感情候補の提案
  * -----------------------------------------------------------------------
- * 観察文の語感から、関連しそうな感情を一部抽出して並び替える。
- * mockではキーワードに応じて「不快寄り／快寄り」の重みを調整するのみ。
+ * 観察文の語感から「満たされている／いない」のどちらに近いかを一度だけ判定し、
+ * その傾向に合う感情を優先的に並べる。
+ * ただし判定が外れる可能性もあるため、もう一方の感情も suggestions には含めて返し、
+ * 画面側で「ほかの気持ちも見てみる」から開けるようにしている（隠す＝消す、ではない）。
  */
-export async function suggestEmotions(observationText: string): Promise<EmotionOption[]> {
+export async function suggestEmotions(observationText: string): Promise<EmotionSuggestionResult> {
   await wait(900);
 
   const uncomfortableHint = /(やり直し|無視|変更|怒|否定|拒否|残業|delayed|遅れ)/.test(
     observationText
   );
+  const matchedTone: EmotionOption["tone"] = uncomfortableHint ? "uncomfortable" : "comfortable";
 
-  const pool = EMOTION_LIBRARY.filter((e) =>
-    uncomfortableHint ? e.tone === "uncomfortable" : true
-  );
+  const priorityIds =
+    matchedTone === "uncomfortable"
+      ? [
+          "frustrated",
+          "hurt",
+          "anxious",
+          "disappointed",
+          "helpless",
+          "tired",
+          "lonely",
+          "irritated",
+          "sad",
+          "confused",
+          "tense",
+          "overwhelmed",
+          "guilty",
+          "discouraged",
+          "embarrassed",
+          "heavy",
+        ]
+      : [
+          "calm",
+          "relieved",
+          "glad",
+          "grateful",
+          "secure",
+          "satisfied",
+          "warm",
+          "content",
+          "touched",
+          "hopeful",
+          "connected",
+          "peaceful",
+        ];
 
-  // よく出やすい代表的な感情を優先的に並べる
-  const priorityIds = uncomfortableHint
-    ? [
-        "frustrated",
-        "hurt",
-        "anxious",
-        "disappointed",
-        "helpless",
-        "tired",
-        "lonely",
-        "irritated",
-        "sad",
-        "confused",
-        "tense",
-        "overwhelmed",
-        "guilty",
-        "discouraged",
-        "embarrassed",
-        "heavy",
-      ]
-    : [
-        "calm",
-        "relieved",
-        "glad",
-        "grateful",
-        "secure",
-        "satisfied",
-        "warm",
-        "content",
-        "touched",
-        "hopeful",
-        "connected",
-        "peaceful",
-      ];
+  const matched = EMOTION_LIBRARY.filter((e) => e.tone === matchedTone);
+  const other = EMOTION_LIBRARY.filter((e) => e.tone !== matchedTone);
 
   const prioritized = priorityIds
-    .map((id) => pool.find((e) => e.id === id))
+    .map((id) => matched.find((e) => e.id === id))
     .filter((e): e is EmotionOption => Boolean(e));
+  const restMatched = matched.filter((e) => !priorityIds.includes(e.id));
 
-  const rest = pool.filter((e) => !priorityIds.includes(e.id));
-
-  return [...prioritized, ...rest].slice(0, 18);
+  // matchedTone側を先に、other（隠す候補）をあとに連結して返す。
+  // 画面側は matchedTone と一致する分だけを初期表示し、残りはトグルで開く。
+  return {
+    suggestions: [...prioritized, ...restMatched, ...other],
+    matchedTone,
+  };
 }
 
 /**

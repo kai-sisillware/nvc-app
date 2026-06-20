@@ -1,4 +1,4 @@
-import type { AIContext, EmotionOption, NeedOption, RequestOption } from "../types";
+import type { AIContext, EmotionSuggestionResult, NeedOption, RequestOption } from "../types";
 
 /**
  * AIサービスのインターフェース
@@ -21,7 +21,7 @@ import type { AIContext, EmotionOption, NeedOption, RequestOption } from "../typ
  */
 export interface AIService {
   rewriteObservation(rawInput: string): Promise<string>;
-  suggestEmotions(observationText: string): Promise<EmotionOption[]>;
+  suggestEmotions(observationText: string): Promise<EmotionSuggestionResult>;
   suggestNeeds(ctx: AIContext): Promise<NeedOption[]>;
   composeSummary(ctx: AIContext): Promise<string>;
   composeDeepQuestion(ctx: AIContext): Promise<string>;
