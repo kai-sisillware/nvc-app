@@ -31,7 +31,7 @@ export function Step2Emotion() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, []);
 
   const handleAddCustom = () => {
     if (!customDraft.trim()) return;
