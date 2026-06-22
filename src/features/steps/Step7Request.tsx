@@ -6,6 +6,57 @@ import { findNeedById } from "../../data/needs";
 import { ScreenContainer, StepHeader } from "../../components/layout";
 import { Card, ThinkingIndicator } from "../../components/ui";
 
+/** Step0 と同じ海藻ロゴを小さく表示するインラインSVG */
+function SeaweedLogo({ size = 180 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 300 64"
+      width={size}
+      role="img"
+      aria-label="SelfEmpathy"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ fontFamily: "'Zen Old Mincho', serif", opacity: 0.55 }}
+    >
+      <title>SelfEmpathy</title>
+      <path fill="none" stroke="#5B7065" strokeWidth="2.2" strokeLinecap="round"
+        d="M 18 60 C 14 50, 26 42, 18 30 C 10 18, 24 10, 18 2"/>
+      <path fill="none" stroke="#5B7065" strokeWidth="1.6" strokeLinecap="round"
+        d="M 18 38 C 30 32, 36 24, 30 16"/>
+      <path fill="none" stroke="#5B7065" strokeWidth="1.6" strokeLinecap="round"
+        d="M 16 22 C 4 16, 0 8, 6 2"/>
+      <path fill="none" stroke="#5B7065" strokeWidth="1.2" strokeLinecap="round"
+        d="M 18 50 C 8 46, 4 40, 8 34"/>
+      <path fill="none" stroke="#5B7065" strokeWidth="1.6" strokeLinecap="round"
+        d="M 34 60 C 40 48, 28 38, 36 26 C 44 14, 34 6, 40 0"/>
+      <path fill="none" stroke="#5B7065" strokeWidth="1.4" strokeLinecap="round"
+        d="M 36 44 C 26 40, 20 34, 24 28"/>
+      <path fill="none" stroke="#5B7065" strokeWidth="1.2" strokeLinecap="round"
+        d="M 36 28 C 48 22, 52 14, 46 8"/>
+      <path fill="none" stroke="#5B7065" strokeWidth="1.2" strokeLinecap="round"
+        d="M 50 60 C 48 50, 56 42, 50 30 C 46 20, 52 12, 50 4"/>
+      <path fill="none" stroke="#5B7065" strokeWidth="1.0" strokeLinecap="round"
+        d="M 50 36 C 60 30, 64 22, 58 16"/>
+      <circle fill="none" stroke="#5B7065" strokeWidth="1.2" cx="68" cy="50" r="3.5"/>
+      <circle fill="none" stroke="#5B7065" strokeWidth="1.0" cx="76" cy="38" r="2.5"/>
+      <circle fill="none" stroke="#5B7065" strokeWidth="1.2" cx="72" cy="24" r="3"/>
+      <circle fill="none" stroke="#5B7065" strokeWidth="0.9" cx="80" cy="14" r="2"/>
+      <circle fill="none" stroke="#5B7065" strokeWidth="1.0" cx="66" cy="10" r="2.5"/>
+      <circle fill="none" stroke="#5B7065" strokeWidth="0.8" cx="78" cy="4"  r="1.5"/>
+      <circle fill="none" stroke="#5B7065" strokeWidth="0.8" cx="64" cy="30" r="1.2"/>
+      <text
+        x="90" y="42"
+        fontSize="28"
+        fontWeight="400"
+        fill="#2E2B27"
+        letterSpacing="2"
+        fontFamily="'Zen Old Mincho', serif"
+      >
+        SelfEmpathy
+      </text>
+    </svg>
+  );
+}
+
 export function Step7Request() {
   const { state, dispatch } = useJourney();
   const { options, selectedId, status } = state.request;
@@ -40,7 +91,7 @@ export function Step7Request() {
   return (
     <ScreenContainer>
       <StepHeader
-        eyebrow="もし誰かに伝えるとしたら"
+        eyebrow="Step 6 ・ もし伝えるとしたら"
         title="言葉の候補です。"
         description={
           <>
@@ -96,16 +147,7 @@ export function Step7Request() {
       {/* 閉幕 */}
       {status === "done" && (
         <div className="mt-10 flex flex-col items-center gap-5 pb-6 animate-fade-in">
-          {/* ロゴ */}
-          <div className="flex items-center gap-2 opacity-60">
-            <svg viewBox="0 0 28 28" className="w-5 h-5 flex-shrink-0" aria-hidden="true">
-              <path
-                d="M14 24 C6 17.5, 1.5 11, 1.5 6.5 C1.5 2.8, 4.8 0.5, 8.5 0.5 C11 0.5, 12.8 1.8, 14 4.2 C15.2 1.8, 17 0.5, 19.5 0.5 C23.2 0.5, 26.5 2.8, 26.5 6.5 C26.5 11, 22 17.5, 14 24 Z"
-                fill="#5B7065"
-              />
-            </svg>
-            <span className="text-[14px] font-display text-ink-soft">SelfEmpathy</span>
-          </div>
+          <SeaweedLogo size={180} />
 
           <button
             type="button"
