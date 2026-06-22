@@ -97,7 +97,7 @@ export function Step4Summary() {
 
       {status === "done" && (
         <NavRow onBack={() => dispatch({ type: "GO_TO_STEP", step: 3 })}>
-          <Button onClick={() => dispatch({ type: "GO_TO_STEP", step: 5 })}>次へ進む</Button>
+          <Button onClick={() => dispatch({ type: "GO_TO_STEP", step: 6 })}>次へ</Button>
         </NavRow>
       )}
     </ScreenContainer>

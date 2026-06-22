@@ -32,16 +32,63 @@ export function Step0Welcome() {
 
         {/* ロゴ・タイトル */}
         <header className="space-y-6">
-          <div className="flex items-center gap-2">
-            {/* モスグリーンのハートアイコン */}
-            <svg viewBox="0 0 28 28" className="w-7 h-7 flex-shrink-0" aria-hidden="true">
-              <path
-                d="M14 24 C6 17.5, 1.5 11, 1.5 6.5 C1.5 2.8, 4.8 0.5, 8.5 0.5 C11 0.5, 12.8 1.8, 14 4.2 C15.2 1.8, 17 0.5, 19.5 0.5 C23.2 0.5, 26.5 2.8, 26.5 6.5 C26.5 11, 22 17.5, 14 24 Z"
-                fill="#5B7065"
-              />
-            </svg>
-            <h1 className="text-[22px] font-display tracking-wide text-ink-soft">SelfEmpathy</h1>
-          </div>
+          {/* 海藻ロゴ（SVGインライン） */}
+          <svg
+            viewBox="0 0 300 64"
+            width="260"
+            role="img"
+            aria-label="SelfEmpathy"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ fontFamily: "'Zen Old Mincho', serif" }}
+          >
+            <title>SelfEmpathy</title>
+
+            {/* 海藻1：左の茎（S字） */}
+            <path fill="none" stroke="#5B7065" strokeWidth="2.2" strokeLinecap="round"
+              d="M 18 60 C 14 50, 26 42, 18 30 C 10 18, 24 10, 18 2"/>
+            {/* 葉 */}
+            <path fill="none" stroke="#5B7065" strokeWidth="1.6" strokeLinecap="round"
+              d="M 18 38 C 30 32, 36 24, 30 16"/>
+            <path fill="none" stroke="#5B7065" strokeWidth="1.6" strokeLinecap="round"
+              d="M 16 22 C 4 16, 0 8, 6 2"/>
+            <path fill="none" stroke="#5B7065" strokeWidth="1.2" strokeLinecap="round"
+              d="M 18 50 C 8 46, 4 40, 8 34"/>
+
+            {/* 海藻2：逆S字 */}
+            <path fill="none" stroke="#5B7065" strokeWidth="1.6" strokeLinecap="round"
+              d="M 34 60 C 40 48, 28 38, 36 26 C 44 14, 34 6, 40 0"/>
+            <path fill="none" stroke="#5B7065" strokeWidth="1.4" strokeLinecap="round"
+              d="M 36 44 C 26 40, 20 34, 24 28"/>
+            <path fill="none" stroke="#5B7065" strokeWidth="1.2" strokeLinecap="round"
+              d="M 36 28 C 48 22, 52 14, 46 8"/>
+
+            {/* 海藻3：細い茎 */}
+            <path fill="none" stroke="#5B7065" strokeWidth="1.2" strokeLinecap="round"
+              d="M 50 60 C 48 50, 56 42, 50 30 C 46 20, 52 12, 50 4"/>
+            <path fill="none" stroke="#5B7065" strokeWidth="1.0" strokeLinecap="round"
+              d="M 50 36 C 60 30, 64 22, 58 16"/>
+
+            {/* 気泡 */}
+            <circle fill="none" stroke="#5B7065" strokeWidth="1.2" cx="68" cy="50" r="3.5"/>
+            <circle fill="none" stroke="#5B7065" strokeWidth="1.0" cx="76" cy="38" r="2.5"/>
+            <circle fill="none" stroke="#5B7065" strokeWidth="1.2" cx="72" cy="24" r="3"/>
+            <circle fill="none" stroke="#5B7065" strokeWidth="0.9" cx="80" cy="14" r="2"/>
+            <circle fill="none" stroke="#5B7065" strokeWidth="1.0" cx="66" cy="10" r="2.5"/>
+            <circle fill="none" stroke="#5B7065" strokeWidth="0.8" cx="78" cy="4"  r="1.5"/>
+            <circle fill="none" stroke="#5B7065" strokeWidth="0.8" cx="64" cy="30" r="1.2"/>
+
+            {/* テキスト */}
+            <text
+              x="90" y="42"
+              fontSize="28"
+              fontWeight="400"
+              fill="#2E2B27"
+              letterSpacing="2"
+              fontFamily="'Zen Old Mincho', serif"
+            >
+              SelfEmpathy
+            </text>
+          </svg>
 
           <div className="space-y-2">
             <p className="text-[26px] sm:text-[28px] font-display leading-snug text-ink">
@@ -137,7 +184,14 @@ export function Step0Welcome() {
         </button>
 
         <p className="text-[11.5px] text-ink-faint text-center -mt-6">
-          by SISILLWARE
+          <span className="inline-flex items-center gap-1.5">
+            <span>by</span>
+            <img
+              src="/sisillware-logo.png"
+              alt="Sisillware"
+              style={{ height: "13px", mixBlendMode: "multiply", opacity: 0.45 }}
+            />
+          </span>
         </p>
 
       </div>

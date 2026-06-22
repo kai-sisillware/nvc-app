@@ -37,6 +37,9 @@ export function Step1Observation() {
           }
           placeholder="友達に連絡したのに、ずっと既読がつかなかった…"
         />
+        <p className="mt-3 text-[12.5px] text-ink-faint leading-relaxed">
+          うまく書けなくても大丈夫です。テキストにしなくても、まず自分の中でじっくりと振り返ってから、次に進んでみてください。
+        </p>
       </Card>
 
       <NavRow onBack={() => dispatch({ type: "GO_TO_STEP", step: 0 })}>

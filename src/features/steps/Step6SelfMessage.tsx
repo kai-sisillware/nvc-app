@@ -9,7 +9,6 @@ import { Button, Card, ProgressBar, ThinkingIndicator } from "../../components/u
 export function Step6SelfMessage() {
   const { state, dispatch } = useJourney();
   const { message, status } = state.selfMessage;
-  const { started: deepDiveStarted, insight } = state.deepDive;
 
   const emotionLabels = state.emotion.selectedIds.map(
     (id) => findEmotionById(id)?.label ?? id.replace("custom-", "")
@@ -17,6 +16,14 @@ export function Step6SelfMessage() {
   const needLabels = state.need.selectedIds
     .map((id) => findNeedById(id)?.label ?? state.need.suggestions.find((n) => n.id === id)?.label)
     .filter((v): v is string => Boolean(v));
+
+  // 選択した感情がすべて「快寄り」の場合、リクエストを提案しない
+  const allComfortable =
+    state.emotion.selectedIds.length > 0 &&
+    state.emotion.selectedIds.every((id) => {
+      const emotion = findEmotionById(id);
+      return !emotion || emotion.tone === "comfortable";
+    });
 
   useEffect(() => {
     if (status !== "idle") return;
@@ -26,16 +33,14 @@ export function Step6SelfMessage() {
       dispatch({ type: "SET_SELF_MESSAGE_STATUS", status: "loading" });
       const result = await aiService.composeSelfMessage(
         { observationText: state.observation.finalText, emotionLabels, needLabels },
-        deepDiveStarted && insight ? insight : null
+        null
       );
       if (cancelled) return;
       dispatch({ type: "SET_SELF_MESSAGE", value: result });
       dispatch({ type: "SET_SELF_MESSAGE_STATUS", status: "done" });
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -48,8 +53,8 @@ export function Step6SelfMessage() {
 
   return (
     <ScreenContainer>
-      <ProgressBar current={6} />
-      <StepHeader eyebrow="Step 6 ・ あなたへ" title="少し、自分に言葉をかけてみます。" />
+      <ProgressBar current={5} />
+      <StepHeader eyebrow="Step 5 ・ あなたへ" title="少し、自分に言葉をかけてみます。" />
 
       <Card className="bg-paper-soft">
         {status === "loading" && <ThinkingIndicator label="言葉を選んでいます" />}
@@ -63,10 +68,11 @@ export function Step6SelfMessage() {
 
       {status === "done" && (
         <div className="mt-10 flex flex-col items-center gap-5">
-          <Button variant="secondary" onClick={handleOpenRequest}>
-            相手へのリクエストを考えてみる
-          </Button>
-
+          {!allComfortable && (
+            <Button variant="secondary" onClick={handleOpenRequest}>
+              もし誰かに伝えるとしたら
+            </Button>
+          )}
           <button
             type="button"
             onClick={handleRestart}

@@ -144,7 +144,7 @@ export function Step2Emotion() {
             「悲しい」「イライラする」「疲れた」のような、
             自分の中で起きていることを選んでみましょう。
             <br />
-            いくつ選んでも、選ばなくても大丈夫です。
+            <strong className="font-medium text-ink">いくつ選んでも、選ばなくても大丈夫です。</strong>
           </>
         }
       />

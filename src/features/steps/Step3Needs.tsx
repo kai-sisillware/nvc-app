@@ -4,7 +4,7 @@ import { aiService } from "../../services";
 import { findEmotionById } from "../../data/emotions";
 import { NEED_CATEGORIES_ORDERED } from "../../data/needs";
 import type { NeedOption } from "../../types";
-import { ScreenContainer, NavRow } from "../../components/layout";
+import { ScreenContainer, StepHeader, NavRow } from "../../components/layout";
 import { Button, ProgressBar, RelevanceDots, ThinkingIndicator } from "../../components/ui";
 
 // ---- カテゴリ単位のアコーディオン ----
@@ -145,28 +145,30 @@ export function Step3Needs() {
     <ScreenContainer>
       <ProgressBar current={3} />
 
-      {/* Step3専用ヘッダー */}
-      <header className="mb-8 space-y-5">
-        <p className="text-[13px] tracking-[0.2em] text-moss-500 uppercase">Step 3 ・ 気づく</p>
-        <h1 className="text-[22px] sm:text-[25px] font-display leading-snug text-ink">
-          何を大切にしていましたか？
-        </h1>
+      <StepHeader
+        eyebrow="Step 3 ・ 気づく"
+        title="何を大切にしていましたか？"
+        description={
+          <>
+            その感情の奥にある、大切にしていたものを探してみましょう。
+            <br />
+            <strong className="font-medium text-ink">いくつ選んでも、選ばなくても大丈夫です。</strong>
+          </>
+        }
+      />
 
-        {/* ニーズとは？の橋渡し */}
-        <div className="rounded-2xl bg-moss-50 border border-moss-100 px-5 py-4 space-y-2">
-          <p className="text-[14px] font-medium text-moss-700">
-            感情の奥には、必ず「大切にしていること」があります。
-          </p>
-          <p className="text-[13.5px] leading-[1.85] text-ink-soft">
-            怒りや悲しみは、あなたの中の大切なものが脅かされたサインです。
-            その「大切なもの」のことを、NVCでは
-            <strong className="text-ink font-medium">ニーズ</strong>と呼びます。
-          </p>
-          <p className="text-[13.5px] leading-[1.85] text-ink-soft">
-            正解はありません。「なんとなくしっくりくる」ものを選んでみましょう。
-          </p>
-        </div>
-      </header>
+      {/* ニーズとは？の橋渡し */}
+      <div className="rounded-2xl bg-moss-50 border border-moss-100 px-5 py-4 space-y-2 -mt-2 mb-8">
+        <p className="text-[13.5px] font-medium text-moss-700">
+          感情の奥には、必ず「大切にしていること」があります。
+        </p>
+        <p className="text-[13px] leading-[1.85] text-ink-soft">
+          怒りや悲しみは、あなたの中の大切なものが脅かされたサインです。
+          その「大切なもの」のことを、NVCでは
+          <strong className="text-ink font-medium">ニーズ</strong>と呼びます。
+          なんとなくしっくりくるものを選んでみてください。
+        </p>
+      </div>
 
       {status === "loading" && (
         <div className="rounded-xl2 border border-line bg-paper-soft shadow-soft p-6">

@@ -5,7 +5,6 @@ import {
   Step2Emotion,
   Step3Needs,
   Step4Summary,
-  Step5DeepDive,
   Step6SelfMessage,
   Step7Request,
 } from "./features/steps";
@@ -25,7 +24,8 @@ function StepRouter() {
     case 4:
       return <Step4Summary />;
     case 5:
-      return <Step5DeepDive />;
+      // Step5（深掘り）は削除済み。念のためStep6にフォールスルー
+      return <Step6SelfMessage />;
     case 6:
       return <Step6SelfMessage />;
     case 7:
