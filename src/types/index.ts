@@ -7,8 +7,8 @@
  * 受け皿として利用できるように設計している。
  */
 
-/** ウィザード全体のステップ番号（Step7 は任意なので isRequestOpen で制御） */
-export type StepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+/** ウィザード全体のステップ番号（0=ウェルカム画面、Step7 は任意なので isRequestOpen で制御） */
+export type StepNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 /** AIへの問い合わせが進行中かどうかを表す共通ステータス */
 export type AsyncStatus = "idle" | "loading" | "done" | "error";
@@ -30,7 +30,8 @@ export interface ObservationState {
 export interface EmotionOption {
   id: string;
   label: string;
-  /** 「満たされている時の感情」か「満たされていない時の感情」かの分類 */
+  /** 感情のカテゴリ（怒り・悲しみ・不安 など） */
+  category: string;
   tone: "comfortable" | "uncomfortable";
 }
 

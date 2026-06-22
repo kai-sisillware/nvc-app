@@ -51,44 +51,48 @@ export async function rewriteObservation(rawInput: string): Promise<string> {
 export async function suggestEmotions(observationText: string): Promise<EmotionSuggestionResult> {
   await wait(900);
 
-  const uncomfortableHint = /(やり直し|無視|変更|怒|否定|拒否|残業|delayed|遅れ)/.test(
+  // 快寄りのキーワードが明確にある場合だけ comfortable をデフォルトにする。
+  // それ以外（不快キーワードがある、または判定できない）はすべて uncomfortable をデフォルトにする。
+  // 理由：このツールを使う場面の大半は、何か不快なことがあったとき。
+  const comfortableHint = /(うれしい|よかった|楽しかった|感謝|ありがとう|褒め|ほめ|達成|成功)/.test(
     observationText
   );
-  const matchedTone: EmotionOption["tone"] = uncomfortableHint ? "uncomfortable" : "comfortable";
+  const matchedTone: EmotionOption["tone"] = comfortableHint ? "comfortable" : "uncomfortable";
 
+  // 各グループの代表的な感情を優先的に先頭に並べる（新しいIDに合わせて更新）
   const priorityIds =
     matchedTone === "uncomfortable"
       ? [
-          "frustrated",
-          "hurt",
-          "anxious",
-          "disappointed",
-          "helpless",
-          "tired",
-          "lonely",
-          "irritated",
-          "sad",
-          "confused",
-          "tense",
-          "overwhelmed",
-          "guilty",
-          "discouraged",
-          "embarrassed",
-          "heavy",
+          "iira",        // イライラ
+          "kanashii",    // 悲しい
+          "fuan",        // 不安
+          "modokashii",  // もどかしい
+          "kizutsuita",  // 傷ついた
+          "sabishii",    // 寂しい
+          "tsurai",      // つらい
+          "gakkari",     // がっかり
+          "tsukareta",   // 疲れた
+          "shinpai",     // 心配
+          "zannen",      // 残念な
+          "doyo",        // 動揺した
+          "munashii",    // 空しい
+          "aseri",       // 焦り
+          "kuyashii",    // 悔しい
+          "kokai",       // 後悔
         ]
       : [
-          "calm",
-          "relieved",
-          "glad",
-          "grateful",
-          "secure",
-          "satisfied",
-          "warm",
-          "content",
-          "touched",
-          "hopeful",
-          "connected",
-          "peaceful",
+          "ureshii",     // うれしい
+          "tanoshii",    // 楽しい
+          "anshin",      // 安心した
+          "hotto",       // ほっとする
+          "shiawase",    // 幸せな
+          "arigatai",    // ありがたい
+          "odayaka",     // 穏やかな
+          "jujitsu",     // 充実した
+          "wakuwaku",    // ワクワクする
+          "sukkiri",     // すっきり
+          "kando",       // 感動した
+          "hokorashii",  // 誇らしい
         ];
 
   const matched = EMOTION_LIBRARY.filter((e) => e.tone === matchedTone);
@@ -121,20 +125,45 @@ export async function suggestNeeds(ctx: AIContext): Promise<NeedOption[]> {
   const weighted = NEED_LIBRARY.map((need) => {
     let score = need.relevance;
 
-    if (/(やり直し|否定|評価)/.test(text) && ["recognition", "respect", "understanding"].includes(need.id)) {
+    // 否定・やり直し → 認められること・理解されること
+    if (/(やり直し|否定|評価|批判|ダメ出し)/.test(text) &&
+      ["mitomeru", "rikai", "kyoukan", "sonkei"].includes(need.id)) {
       score += 2;
     }
-    if (/(無視|返事がなかった|孤立|さみしい)/.test(text) && ["belonging", "understanding", "empathy"].includes(need.id)) {
+    // 無視・返事なし → つながり・聞いてもらうこと
+    if (/(無視|既読|返事|スルー|孤独|さみし)/.test(text) &&
+      ["kiku", "tsunagari", "issho", "kyoukan", "taisetsuni"].includes(need.id)) {
       score += 2;
     }
-    if (/(変更|予定|裏切)/.test(text) && ["trust", "stability", "clarity"].includes(need.id)) {
+    // 変更・裏切り → 信頼・安定・透明性
+    if (/(変更|予定|突然|急に|裏切)/.test(text) &&
+      ["shinrai", "antei", "toumesei", "meikakusa"].includes(need.id)) {
       score += 2;
     }
-    if (ctx.emotionLabels.some((l) => ["イライラする", "もどかしい"].includes(l)) && ["autonomy", "fairness"].includes(need.id)) {
+    // ハラスメント・怒り → 尊厳・公平
+    if (/(怒|叱|バカ|馬鹿|ハラスメント|差別)/.test(text) &&
+      ["songen", "kousei", "sonkei", "byoudou"].includes(need.id)) {
+      score += 2;
+    }
+    // 疲れた・重苦しい → 休息・ゆとり
+    if (ctx.emotionLabels.some((l) => ["疲れた", "だるい", "どんよりした", "気が重い", "うんざり"].includes(l)) &&
+      ["yutori", "kyuusoku", "kiraku", "iyashi"].includes(need.id)) {
+      score += 2;
+    }
+    // 不安・心配 → 安心・安全・支え
+    if (ctx.emotionLabels.some((l) => ["不安", "心配", "びくびく", "焦り", "はらはら"].includes(l)) &&
+      ["anshin", "anzen", "sasae", "shinrai"].includes(need.id)) {
+      score += 2;
+    }
+    // もどかしい・じれったい → 自主性・選択
+    if (ctx.emotionLabels.some((l) => ["もどかしい", "じれったい", "窮屈な"].includes(l)) &&
+      ["jihatsusei", "sentaku", "jiritsu"].includes(need.id)) {
       score += 1;
     }
-    if (ctx.emotionLabels.some((l) => ["疲れた", "重苦しい"].includes(l)) && ["rest", "space"].includes(need.id)) {
-      score += 1;
+    // 悲しい・傷ついた → 大切にされること・思いやり
+    if (ctx.emotionLabels.some((l) => ["悲しい", "傷ついた", "みじめな", "引き裂かれる感じ"].includes(l)) &&
+      ["taisetsuni", "omoiyari", "yasashisa", "atatakasa"].includes(need.id)) {
+      score += 2;
     }
 
     return { need, score };
@@ -142,12 +171,13 @@ export async function suggestNeeds(ctx: AIContext): Promise<NeedOption[]> {
 
   weighted.sort((a, b) => b.score - a.score);
 
-  const top = weighted.slice(0, 14).map(({ need, score }) => ({
+  // アコーディオンUIで全カテゴリを表示するため、上限なく全件返す。
+  // relevanceドットはスコアに応じて1〜5に丸めて表示し、
+  // 「今回どれくらい関係しそうか」の目安として機能させる。
+  return weighted.map(({ need, score }) => ({
     ...need,
     relevance: Math.max(1, Math.min(5, score)) as NeedOption["relevance"],
   }));
-
-  return top;
 }
 
 /**

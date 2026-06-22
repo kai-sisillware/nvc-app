@@ -1,3 +1,4 @@
+export { Step0Welcome } from "./Step0Welcome";
 export { Step1Observation } from "./Step1Observation";
 export { Step2Emotion } from "./Step2Emotion";
 export { Step3Needs } from "./Step3Needs";

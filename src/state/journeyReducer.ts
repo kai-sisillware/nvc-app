@@ -1,7 +1,7 @@
 import type { JourneyState } from "../types";
 
 export const createInitialState = (): JourneyState => ({
-  step: 1,
+  step: 0,
   observation: {
     rawInput: "",
     aiSuggestion: "",
@@ -120,7 +120,7 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
         emotion: {
           ...state.emotion,
           customEmotions: [...state.emotion.customEmotions, label],
-          suggestions: [...state.emotion.suggestions, { id, label, tone: "uncomfortable" }],
+          suggestions: [...state.emotion.suggestions, { id, label, category: "その他", tone: "uncomfortable" as const }],
           selectedIds: [...state.emotion.selectedIds, id],
         },
       };

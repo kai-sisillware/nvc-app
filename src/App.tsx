@@ -1,5 +1,6 @@
 import { JourneyProvider, useJourney } from "./state/JourneyContext";
 import {
+  Step0Welcome,
   Step1Observation,
   Step2Emotion,
   Step3Needs,
@@ -13,6 +14,8 @@ function StepRouter() {
   const { state } = useJourney();
 
   switch (state.step) {
+    case 0:
+      return <Step0Welcome />;
     case 1:
       return <Step1Observation />;
     case 2:
@@ -28,7 +31,7 @@ function StepRouter() {
     case 7:
       return <Step7Request />;
     default:
-      return <Step1Observation />;
+      return <Step0Welcome />;
   }
 }
 

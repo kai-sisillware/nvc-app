@@ -1,15 +1,80 @@
 import { useEffect, useState } from "react";
 import { useJourney } from "../../state/JourneyContext";
 import { aiService } from "../../services";
+import {
+  UNCOMFORTABLE_CATEGORIES,
+  COMFORTABLE_CATEGORIES,
+} from "../../data/emotions";
+import type { EmotionOption } from "../../types";
 import { ScreenContainer, StepHeader, NavRow } from "../../components/layout";
 import { Button, Card, ProgressBar, SelectableChip, ThinkingIndicator } from "../../components/ui";
 
+// ---- カテゴリ単位のアコーディオン ----
+interface CategoryGroupProps {
+  categoryName: string;
+  emotions: EmotionOption[];
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+  defaultOpen?: boolean;
+}
+
+function CategoryGroup({
+  categoryName,
+  emotions,
+  selectedIds,
+  onToggle,
+  defaultOpen = false,
+}: CategoryGroupProps) {
+  const [open, setOpen] = useState(defaultOpen);
+  const selectedCount = emotions.filter((e) => selectedIds.includes(e.id)).length;
+
+  return (
+    <div className="border border-line rounded-2xl overflow-hidden bg-paper-soft">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className={`w-full flex items-center justify-between px-4 py-3.5 transition-colors
+          ${open ? "bg-moss-50" : "hover:bg-paper"}`}
+      >
+        <span className="flex items-center gap-2.5">
+          <span className="text-[15px] font-medium text-ink">{categoryName}</span>
+          {selectedCount > 0 && (
+            <span className="rounded-full bg-moss-500 text-paper-soft text-[11px] px-2 py-0.5 leading-none">
+              {selectedCount}
+            </span>
+          )}
+        </span>
+        <span
+          className={`text-ink-faint text-[11px] transition-transform duration-200 ${open ? "rotate-90" : ""}`}
+        >
+          ▶
+        </span>
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 pt-2 flex flex-wrap gap-2 border-t border-line animate-fade-in">
+          {emotions.map((emotion) => (
+            <SelectableChip
+              key={emotion.id}
+              label={emotion.label}
+              selected={selectedIds.includes(emotion.id)}
+              onToggle={() => onToggle(emotion.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Step2本体 ----
 export function Step2Emotion() {
   const { state, dispatch } = useJourney();
   const { suggestions, matchedTone, selectedIds, status } = state.emotion;
+  const [showComfortable, setShowComfortable] = useState(false);
   const [customDraft, setCustomDraft] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [showOtherTone, setShowOtherTone] = useState(false);
 
   useEffect(() => {
     if (status !== "idle") return;
@@ -27,9 +92,7 @@ export function Step2Emotion() {
       dispatch({ type: "SET_EMOTION_STATUS", status: "done" });
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -40,106 +103,146 @@ export function Step2Emotion() {
     setShowCustomInput(false);
   };
 
-  // 既定では「観察文から推定した傾向」に合う感情だけを表示し、
-  // 反対側の傾向はトグルを押すまで隠しておく（消すわけではない）
-  const primaryEmotions = suggestions.filter(
-    (e) => !matchedTone || e.tone === matchedTone || e.id.startsWith("custom-")
-  );
-  const otherEmotions = suggestions.filter((e) => matchedTone && e.tone !== matchedTone);
+  // カテゴリ別にグループ化
+  const byCategory = (cat: string) =>
+    suggestions.filter((e) => e.category === cat);
+
+  // 観察文のキーワードから事前展開するカテゴリを推定
+  const text = state.observation.finalText;
+  const preOpenCategories = new Set<string>();
+  if (/(怒|腹|むか|イライラ|むしゃくしゃ)/.test(text)) preOpenCategories.add("怒り");
+  if (/(悲|泣|つら|苦|傷)/.test(text)) preOpenCategories.add("悲しみ");
+  if (/(不安|心配|怖|恐)/.test(text)) preOpenCategories.add("不安");
+  if (/(疲れ|だるい|しんど|うんざり)/.test(text)) preOpenCategories.add("疲労");
+  if (/(寂|孤独|一人|無視|既読)/.test(text)) preOpenCategories.add("寂しさ");
+  if (/(恥|情けない|みじめ|小さく)/.test(text)) preOpenCategories.add("恥");
+  if (/(モヤ|もどか|じれ|窮屈)/.test(text)) preOpenCategories.add("モヤモヤ");
+  // デフォルトで何も引っかからなければ、悲しみ・モヤモヤを開く
+  if (preOpenCategories.size === 0) {
+    preOpenCategories.add("悲しみ");
+    preOpenCategories.add("モヤモヤ");
+  }
+
+  const primaryCategories = matchedTone === "comfortable"
+    ? COMFORTABLE_CATEGORIES
+    : UNCOMFORTABLE_CATEGORIES;
+  const secondaryCategories = matchedTone === "comfortable"
+    ? UNCOMFORTABLE_CATEGORIES
+    : COMFORTABLE_CATEGORIES;
+  const secondaryLabel = matchedTone === "comfortable"
+    ? "不快の気持ちも見てみる"
+    : "快の気持ちも見てみる";
 
   return (
     <ScreenContainer>
       <ProgressBar current={2} />
       <StepHeader
-        eyebrow="Step 2 ・ 感情"
-        title="その出来事を受けて、あなたはどんな気持ちになりましたか？"
+        eyebrow="Step 2 ・ 感じる"
+        title="どんな気持ちになりましたか？"
         description={
           <>
-            「裏切られた」「無視された」などは感情ではなく解釈です。
+            「悲しい」「イライラする」「疲れた」のような、
+            自分の中で起きていることを選んでみましょう。
             <br />
-            あなた自身の気持ちを選んでみましょう。いくつ選んでも、選ばなくても大丈夫です。
+            いくつ選んでも、選ばなくても大丈夫です。
           </>
         }
       />
 
-      <Card>
-        {status === "loading" && <ThinkingIndicator label="気持ちの候補をさがしています" />}
+      {status === "loading" && (
+        <Card>
+          <ThinkingIndicator label="気持ちの候補をさがしています" />
+        </Card>
+      )}
 
-        {status === "done" && (
-          <div className="space-y-5 animate-fade-in">
-            <div className="flex flex-wrap gap-2.5">
-              {primaryEmotions.map((emotion) => (
-                <SelectableChip
-                  key={emotion.id}
-                  label={emotion.label}
-                  selected={selectedIds.includes(emotion.id)}
-                  onToggle={() => dispatch({ type: "TOGGLE_EMOTION", id: emotion.id })}
+      {status === "done" && (
+        <div className="space-y-2 animate-fade-in">
+          {primaryCategories.map((cat) => {
+            const emotions = byCategory(cat);
+            if (emotions.length === 0) return null;
+            return (
+              <CategoryGroup
+                key={cat}
+                categoryName={cat}
+                emotions={emotions}
+                selectedIds={selectedIds}
+                onToggle={(id) => dispatch({ type: "TOGGLE_EMOTION", id })}
+                defaultOpen={preOpenCategories.has(cat)}
+              />
+            );
+          })}
+
+          {/* カスタム入力 */}
+          <div className="px-1 pt-1">
+            {showCustomInput ? (
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  value={customDraft}
+                  onChange={(e) => setCustomDraft(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddCustom()}
+                  placeholder="ことばを入力"
+                  className="rounded-full border border-line bg-paper-soft px-4 py-2.5 text-[14px]
+                    focus:border-moss-300 focus:outline-none focus:ring-2 focus:ring-moss-100 w-36"
                 />
-              ))}
-
-              {showCustomInput ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    autoFocus
-                    value={customDraft}
-                    onChange={(e) => setCustomDraft(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAddCustom()}
-                    placeholder="ことばを入力"
-                    className="rounded-full border border-line bg-paper-soft px-4 py-2.5 text-[14px]
-                      focus:border-moss-300 focus:outline-none focus:ring-2 focus:ring-moss-100 w-32"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCustom}
-                    className="text-[13px] text-moss-600 hover:underline"
-                  >
-                    追加
-                  </button>
-                </div>
-              ) : (
                 <button
                   type="button"
-                  onClick={() => setShowCustomInput(true)}
-                  className="rounded-full border border-dashed border-line px-4 py-2.5 text-[14px] text-ink-faint hover:text-ink-soft hover:border-ink-faint transition-colors"
+                  onClick={handleAddCustom}
+                  className="text-[13px] text-moss-600 hover:underline"
                 >
-                  ＋ その他
+                  追加
                 </button>
-              )}
-            </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowCustomInput(true)}
+                className="rounded-full border border-dashed border-line px-4 py-2.5
+                  text-[14px] text-ink-faint hover:text-ink-soft hover:border-ink-faint transition-colors"
+              >
+                ＋ ことばを追加する
+              </button>
+            )}
+          </div>
 
-            {otherEmotions.length > 0 && (
-              <div>
-                {!showOtherTone ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowOtherTone(true)}
-                    className="text-[13px] text-ink-faint hover:text-moss-600 transition-colors underline-offset-4 hover:underline"
-                  >
-                    しっくりこなければ、ほかの気持ちも見てみる
-                  </button>
-                ) : (
-                  <div className="space-y-2.5 pt-1 border-t border-line">
-                    <p className="text-[12.5px] text-ink-faint pt-3">こちらの気持ちかもしれません</p>
-                    <div className="flex flex-wrap gap-2.5">
-                      {otherEmotions.map((emotion) => (
-                        <SelectableChip
-                          key={emotion.id}
-                          label={emotion.label}
-                          selected={selectedIds.includes(emotion.id)}
-                          onToggle={() => dispatch({ type: "TOGGLE_EMOTION", id: emotion.id })}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+          {/* もう一方のトーンのカテゴリ */}
+          <div className="pt-2">
+            {!showComfortable ? (
+              <button
+                type="button"
+                onClick={() => setShowComfortable(true)}
+                className="text-[13px] text-ink-faint hover:text-moss-600 transition-colors
+                  underline-offset-4 hover:underline"
+              >
+                {secondaryLabel}
+              </button>
+            ) : (
+              <div className="space-y-2 animate-fade-in">
+                <p className="text-[12.5px] text-ink-faint px-1">こちらの気持ちかもしれません</p>
+                {secondaryCategories.map((cat) => {
+                  const emotions = byCategory(cat);
+                  if (emotions.length === 0) return null;
+                  return (
+                    <CategoryGroup
+                      key={cat}
+                      categoryName={cat}
+                      emotions={emotions}
+                      selectedIds={selectedIds}
+                      onToggle={(id) => dispatch({ type: "TOGGLE_EMOTION", id })}
+                      defaultOpen={false}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
-        )}
-      </Card>
+        </div>
+      )}
 
       <NavRow onBack={() => dispatch({ type: "GO_TO_STEP", step: 1 })}>
-        <Button onClick={() => dispatch({ type: "GO_TO_STEP", step: 3 })}>次へ進む</Button>
+        <Button onClick={() => dispatch({ type: "GO_TO_STEP", step: 3 })}>
+          次へ
+        </Button>
       </NavRow>
     </ScreenContainer>
   );
