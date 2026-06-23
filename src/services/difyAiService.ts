@@ -1,20 +1,41 @@
-import type { AIContext, RequestOption } from "../types";
+import type { AIContext, EmotionSuggestionResult, RequestOption } from "../types";
 import type { AIService } from "./AIService";
 import { mockAiService } from "./mockAiService";
 
 /**
  * Dify接続版 AIService（段階導入中）
- * -----------------------------------------------------------------------
  * 現在 Dify の実ワークフローに接続済み:
- *   - Step4: composeSummary
- *   - Step7: composeRequests
- * それ以外（Step1〜3, Step5, Step6）は引き続き mockAiService を使用。
- * Difyワークフローを用意できたタイミングで1つずつ本実装に差し替えていく。
- *
- * いずれも直接Difyを呼ばず、必ず Netlify Functions
- * （netlify/functions/*.js）を経由する。
- * これはAPIキーをブラウザに露出させないための必須の構成。
+ *   - Step2: suggestEmotions（観察文から感情をピック）
+ *   - Step4: composeSummary（まとめ）
+ *   - Step7: composeRequests（リクエスト案）
+ * それ以外は mockAiService に委譲。
  */
+
+async function suggestEmotionsViaDify(observationText: string): Promise<EmotionSuggestionResult> {
+  const base = await mockAiService.suggestEmotions(observationText);
+
+  try {
+    const res = await fetch("/.netlify/functions/dify-emotions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ observation_text: observationText }),
+    });
+
+    if (!res.ok) {
+      console.error("Dify emotions call failed", res.status);
+      return base;
+    }
+
+    const data = await res.json();
+    const aiPickedIds: string[] = Array.isArray(data.emotion_ids) ? data.emotion_ids : [];
+
+    return { ...base, aiPickedIds };
+  } catch (err) {
+    console.error("Dify emotions error", err);
+    return base;
+  }
+}
+
 async function composeSummaryViaDify(ctx: AIContext): Promise<string> {
   const res = await fetch("/.netlify/functions/dify-summary", {
     method: "POST",
@@ -27,14 +48,12 @@ async function composeSummaryViaDify(ctx: AIContext): Promise<string> {
   });
 
   if (!res.ok) {
-    // Dify側の不調時は、ユーザーを止めないようmockの文面にフォールバックする
-    console.error("Dify summary request failed", res.status, await res.text());
+    console.error("Dify summary request failed", res.status);
     return mockAiService.composeSummary(ctx);
   }
 
   const data = await res.json();
   if (!data.summary_text) {
-    console.error("Dify summary response missing summary_text", data);
     return mockAiService.composeSummary(ctx);
   }
 
@@ -53,7 +72,7 @@ async function composeRequestsViaDify(ctx: AIContext): Promise<RequestOption[]> 
   });
 
   if (!res.ok) {
-    console.error("Dify requests call failed", res.status, await res.text());
+    console.error("Dify requests call failed", res.status);
     return mockAiService.composeRequests(ctx);
   }
 
@@ -61,7 +80,6 @@ async function composeRequestsViaDify(ctx: AIContext): Promise<RequestOption[]> 
   const texts: unknown = data.requests;
 
   if (!Array.isArray(texts) || texts.length === 0) {
-    console.error("Dify requests response missing requests array", data);
     return mockAiService.composeRequests(ctx);
   }
 
@@ -73,6 +91,7 @@ async function composeRequestsViaDify(ctx: AIContext): Promise<RequestOption[]> 
 
 export const difyAiService: AIService = {
   ...mockAiService,
+  suggestEmotions: suggestEmotionsViaDify,
   composeSummary: composeSummaryViaDify,
   composeRequests: composeRequestsViaDify,
 };

@@ -42,6 +42,8 @@ export interface EmotionState {
   selectedIds: string[];
   /** ユーザーが「その他」から自由入力した感情 */
   customEmotions: string[];
+  /** DifyのAIが特に推薦した感情ID（「AIが見つけた気持ち」として上部に強調表示） */
+  aiPickedIds: string[];
   status: AsyncStatus;
 }
 
@@ -49,6 +51,8 @@ export interface EmotionState {
 export interface EmotionSuggestionResult {
   suggestions: EmotionOption[];
   matchedTone: EmotionOption["tone"];
+  /** DifyのAIが特に推薦した感情ID。mockの場合は空配列 */
+  aiPickedIds: string[];
 }
 
 /* ----------------------------- Step3: ニーズ ----------------------------- */

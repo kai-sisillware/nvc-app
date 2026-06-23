@@ -108,6 +108,7 @@ export async function suggestEmotions(observationText: string): Promise<EmotionS
   return {
     suggestions: [...prioritized, ...restMatched, ...other],
     matchedTone,
+    aiPickedIds: [], // mockは推薦なし。Dify接続時に本実装が入る。
   };
 }
 

@@ -18,13 +18,7 @@ interface CategoryGroupProps {
   defaultOpen?: boolean;
 }
 
-function CategoryGroup({
-  categoryName,
-  emotions,
-  selectedIds,
-  onToggle,
-  defaultOpen = false,
-}: CategoryGroupProps) {
+function CategoryGroup({ categoryName, emotions, selectedIds, onToggle, defaultOpen = false }: CategoryGroupProps) {
   const [open, setOpen] = useState(defaultOpen);
   const selectedCount = emotions.filter((e) => selectedIds.includes(e.id)).length;
 
@@ -45,13 +39,10 @@ function CategoryGroup({
             </span>
           )}
         </span>
-        <span
-          className={`text-ink-faint text-[11px] transition-transform duration-200 ${open ? "rotate-90" : ""}`}
-        >
+        <span className={`text-ink-faint text-[11px] transition-transform duration-200 ${open ? "rotate-90" : ""}`}>
           ▶
         </span>
       </button>
-
       {open && (
         <div className="px-4 pb-4 pt-2 flex flex-wrap gap-2 border-t border-line animate-fade-in">
           {emotions.map((emotion) => (
@@ -71,7 +62,7 @@ function CategoryGroup({
 // ---- Step2本体 ----
 export function Step2Emotion() {
   const { state, dispatch } = useJourney();
-  const { suggestions, matchedTone, selectedIds, status } = state.emotion;
+  const { suggestions, matchedTone, selectedIds, aiPickedIds, status } = state.emotion;
   const [showComfortable, setShowComfortable] = useState(false);
   const [customDraft, setCustomDraft] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
@@ -88,6 +79,7 @@ export function Step2Emotion() {
         type: "SET_EMOTION_SUGGESTIONS",
         value: result.suggestions,
         matchedTone: result.matchedTone,
+        aiPickedIds: result.aiPickedIds,
       });
       dispatch({ type: "SET_EMOTION_STATUS", status: "done" });
     })();
@@ -103,11 +95,14 @@ export function Step2Emotion() {
     setShowCustomInput(false);
   };
 
-  // カテゴリ別にグループ化
-  const byCategory = (cat: string) =>
-    suggestions.filter((e) => e.category === cat);
+  const byCategory = (cat: string) => suggestions.filter((e) => e.category === cat);
 
-  // 観察文のキーワードから事前展開するカテゴリを推定
+  // AIピック済みの感情オブジェクト一覧
+  const aiPickedEmotions = aiPickedIds
+    .map((id) => suggestions.find((e) => e.id === id))
+    .filter((e): e is EmotionOption => Boolean(e));
+
+  // 事前展開するカテゴリ
   const text = state.observation.finalText;
   const preOpenCategories = new Set<string>();
   if (/(怒|腹|むか|イライラ|むしゃくしゃ)/.test(text)) preOpenCategories.add("怒り");
@@ -117,21 +112,14 @@ export function Step2Emotion() {
   if (/(寂|孤独|一人|無視|既読)/.test(text)) preOpenCategories.add("寂しさ");
   if (/(恥|情けない|みじめ|小さく)/.test(text)) preOpenCategories.add("恥");
   if (/(モヤ|もどか|じれ|窮屈)/.test(text)) preOpenCategories.add("モヤモヤ");
-  // デフォルトで何も引っかからなければ、悲しみ・モヤモヤを開く
   if (preOpenCategories.size === 0) {
     preOpenCategories.add("悲しみ");
     preOpenCategories.add("モヤモヤ");
   }
 
-  const primaryCategories = matchedTone === "comfortable"
-    ? COMFORTABLE_CATEGORIES
-    : UNCOMFORTABLE_CATEGORIES;
-  const secondaryCategories = matchedTone === "comfortable"
-    ? UNCOMFORTABLE_CATEGORIES
-    : COMFORTABLE_CATEGORIES;
-  const secondaryLabel = matchedTone === "comfortable"
-    ? "不快の気持ちも見てみる"
-    : "快の気持ちも見てみる";
+  const primaryCategories = matchedTone === "comfortable" ? COMFORTABLE_CATEGORIES : UNCOMFORTABLE_CATEGORIES;
+  const secondaryCategories = matchedTone === "comfortable" ? UNCOMFORTABLE_CATEGORIES : COMFORTABLE_CATEGORIES;
+  const secondaryLabel = matchedTone === "comfortable" ? "不快の気持ちも見てみる" : "快の気持ちも見てみる";
 
   return (
     <ScreenContainer>
@@ -141,8 +129,7 @@ export function Step2Emotion() {
         title="どんな気持ちになりましたか？"
         description={
           <>
-            「悲しい」「イライラする」「疲れた」のような、
-            自分の中で起きていることを選んでみましょう。
+            「悲しい」「イライラする」「疲れた」のような、自分の中で起きていることを選んでみましょう。
             <br />
             <strong className="font-medium text-ink">いくつ選んでも、選ばなくても大丈夫です。</strong>
           </>
@@ -156,7 +143,31 @@ export function Step2Emotion() {
       )}
 
       {status === "done" && (
-        <div className="space-y-2 animate-fade-in">
+        <div className="space-y-3 animate-fade-in">
+
+          {/* AIが見つけた気持ち（Dify接続時のみ表示） */}
+          {aiPickedEmotions.length > 0 && (
+            <div className="rounded-2xl border border-moss-200 bg-moss-50 px-5 py-4 space-y-3">
+              <p className="text-[12.5px] text-moss-600 font-medium tracking-wide">
+                AIが見つけた気持ち
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {aiPickedEmotions.map((emotion) => (
+                  <SelectableChip
+                    key={emotion.id}
+                    label={emotion.label}
+                    selected={selectedIds.includes(emotion.id)}
+                    onToggle={() => dispatch({ type: "TOGGLE_EMOTION", id: emotion.id })}
+                  />
+                ))}
+              </div>
+              <p className="text-[12px] text-moss-500">
+                違うと思ったら外してください。下から追加することもできます。
+              </p>
+            </div>
+          )}
+
+          {/* カテゴリアコーディオン */}
           {primaryCategories.map((cat) => {
             const emotions = byCategory(cat);
             if (emotions.length === 0) return null;
@@ -205,14 +216,13 @@ export function Step2Emotion() {
             )}
           </div>
 
-          {/* もう一方のトーンのカテゴリ */}
+          {/* もう一方のトーン */}
           <div className="pt-2">
             {!showComfortable ? (
               <button
                 type="button"
                 onClick={() => setShowComfortable(true)}
-                className="text-[13px] text-ink-faint hover:text-moss-600 transition-colors
-                  underline-offset-4 hover:underline"
+                className="text-[13px] text-ink-faint hover:text-moss-600 transition-colors underline-offset-4 hover:underline"
               >
                 {secondaryLabel}
               </button>

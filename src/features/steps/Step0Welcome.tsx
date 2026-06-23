@@ -1,6 +1,17 @@
 import { useState } from "react";
 import { useJourney } from "../../state/JourneyContext";
 
+/** 表示するキャッチフレーズの候補（マウント時にランダムに1つ選ぶ） */
+const CATCHPHRASES = [
+  "なんかモヤモヤしている。",
+  "心のどこかが、ざわついている。",
+  "少し、自分の気持ちを整理したい。",
+  "自分のことを、もう少し知りたい。",
+  "あのことが、まだ引っかかっている。",
+  "うまく言葉にできないけど、なんかある。",
+  "何かを感じているけど、名前がわからない。",
+];
+
 const STEPS = [
   {
     number: "01",
@@ -25,6 +36,10 @@ const STEPS = [
 export function Step0Welcome() {
   const { dispatch } = useJourney();
   const [open, setOpen] = useState(false);
+  // マウント時にランダムで1つ選ぶ。セッション中は変わらない。
+  const [phrase] = useState(
+    () => CATCHPHRASES[Math.floor(Math.random() * CATCHPHRASES.length)]
+  );
 
   return (
     <div className="min-h-[100dvh] w-full bg-paper flex flex-col items-center justify-center px-5 py-12">
@@ -90,12 +105,15 @@ export function Step0Welcome() {
             </text>
           </svg>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <p className="text-[26px] sm:text-[28px] font-display leading-snug text-ink">
-              なんかモヤモヤしている。
+              {phrase}
             </p>
-            <p className="text-[16px] leading-relaxed text-ink-soft">
-              そんな気持ちが、すこし楽になるかもしれません。
+            <p className="text-[15px] leading-relaxed text-ink-soft">
+              どうすればいいか、その前に。
+            </p>
+            <p className="text-[14px] leading-[1.85] text-ink-faint">
+              まず自分の気持ちを整理するところから始めてみましょう。
             </p>
           </div>
         </header>
@@ -127,6 +145,12 @@ export function Step0Welcome() {
             </div>
           ))}
         </div>
+
+        {/* ツールの目的の一言 */}
+        <p className="text-[13px] text-ink-faint leading-[1.85] -mt-4">
+          このノートは「答えを出す」ためではなく、
+          自分が何を感じていたかに気づくためのものです。
+        </p>
 
         {/* セルフエンパシーとは（アコーディオン） */}
         <div className="space-y-2">

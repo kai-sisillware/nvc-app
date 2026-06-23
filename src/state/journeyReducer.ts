@@ -13,6 +13,7 @@ export const createInitialState = (): JourneyState => ({
     matchedTone: null,
     selectedIds: [],
     customEmotions: [],
+    aiPickedIds: [],
     status: "idle",
   },
   need: {
@@ -50,7 +51,7 @@ export type JourneyAction =
   | { type: "SET_OBSERVATION_SUGGESTION"; value: string }
   | { type: "SET_OBSERVATION_FINAL"; value: string }
   | { type: "SET_EMOTION_STATUS"; status: JourneyState["emotion"]["status"] }
-  | { type: "SET_EMOTION_SUGGESTIONS"; value: JourneyState["emotion"]["suggestions"]; matchedTone: JourneyState["emotion"]["matchedTone"] }
+  | { type: "SET_EMOTION_SUGGESTIONS"; value: JourneyState["emotion"]["suggestions"]; matchedTone: JourneyState["emotion"]["matchedTone"]; aiPickedIds: string[] }
   | { type: "TOGGLE_EMOTION"; id: string }
   | { type: "ADD_CUSTOM_EMOTION"; label: string }
   | { type: "SET_NEED_STATUS"; status: JourneyState["need"]["status"] }
@@ -97,7 +98,14 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
     case "SET_EMOTION_SUGGESTIONS":
       return {
         ...state,
-        emotion: { ...state.emotion, suggestions: action.value, matchedTone: action.matchedTone },
+        emotion: {
+          ...state.emotion,
+          suggestions: action.value,
+          matchedTone: action.matchedTone,
+          aiPickedIds: action.aiPickedIds,
+          // AIが推薦した感情を初期選択状態にする（ユーザーは変更可能）
+          selectedIds: action.aiPickedIds.length > 0 ? action.aiPickedIds : state.emotion.selectedIds,
+        },
       };
     case "TOGGLE_EMOTION": {
       const exists = state.emotion.selectedIds.includes(action.id);
