@@ -113,7 +113,7 @@ export function Step0Welcome() {
               どうすればいいか、その前に。
             </p>
             <p className="text-[14px] leading-[1.85] text-ink-faint">
-              まず自分の気持ちを整理するところから始めてみましょう。
+              起きた出来事と向き合いながら、自分の気持ちを整理するところから始めてみましょう。
             </p>
           </div>
         </header>
