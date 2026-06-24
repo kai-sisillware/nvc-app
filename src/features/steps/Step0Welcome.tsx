@@ -105,12 +105,9 @@ export function Step0Welcome() {
             </text>
           </svg>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <p className="text-[26px] sm:text-[28px] font-display leading-snug text-ink">
               {phrase}
-            </p>
-            <p className="text-[15px] leading-relaxed text-ink-soft">
-              どうすればいいか、その前に。
             </p>
             <p className="text-[14px] leading-[1.85] text-ink-faint">
               起きた出来事と向き合いながら、自分の気持ちを整理するところから始めてみましょう。
@@ -119,6 +116,9 @@ export function Step0Welcome() {
         </header>
 
         {/* 3ステップの概要カード */}
+        <p className="text-[12.5px] font-medium text-moss-500 tracking-[0.12em] uppercase -mb-1">
+          3つのステップで、自分の気持ちを整理します。
+        </p>
         <div className="rounded-xl2 border border-line bg-paper-soft shadow-soft overflow-hidden">
           {STEPS.map((step, i) => (
             <div
